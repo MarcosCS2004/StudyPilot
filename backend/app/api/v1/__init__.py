@@ -1,8 +1,14 @@
+"""
+Router principal de la API v1.
+Registra todos los sub-routers de cada módulo.
+"""
 from fastapi import APIRouter
-from app.api.v1 import documents, study, autopsy, profile
+from app.api.v1 import documents, study, autopsy, profile, auth
 
 router = APIRouter(prefix="/api/v1")
-router.include_router(documents.router)
-router.include_router(study.router)
-router.include_router(autopsy.router)
-router.include_router(profile.router)
+
+router.include_router(auth.router)       # /api/v1/auth/...
+router.include_router(profile.router)    # /api/v1/profile/...
+router.include_router(study.router)      # /api/v1/study/...
+router.include_router(documents.router)  # /api/v1/documents/...
+router.include_router(autopsy.router)    # /api/v1/exam-autopsy/...

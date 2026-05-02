@@ -18,8 +18,11 @@ import {
   Menu,
   Flame,
   Zap,
+  LogOut,
+  User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/store/authStore";
 
 const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard, id: "nav-dashboard" },
@@ -33,6 +36,10 @@ export default function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { userName, logout } = useAuthStore();
+  
+  // Ocultar sidebar en la página de login
+  if (pathname === "/login") return null;
 
   return (
     <>
@@ -132,19 +139,30 @@ export default function Sidebar() {
         {/* Bottom user area */}
         {!collapsed && (
           <div className="px-3 py-4 border-t border-border shrink-0">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50">
-              <div className="w-8 h-8 rounded-full bg-brand-gradient flex items-center justify-center text-xs font-bold text-white">
-                O
+            {userName ? (
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50">
+                <div className="w-8 h-8 rounded-full bg-brand-gradient flex items-center justify-center text-xs font-bold text-white uppercase">
+                  {userName[0]}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold text-foreground truncate">
+                    {userName}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">Plan Pro</p>
+                </div>
+                <button 
+                  onClick={() => logout()}
+                  className="p-1.5 text-muted-foreground hover:text-rose-400 hover:bg-rose-400/10 rounded-lg transition-colors"
+                  title="Cerrar sesión"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-foreground truncate">
-                  Oscar
-                </p>
-                <p className="text-[10px] text-muted-foreground">
-                  Plan Pro
-                </p>
-              </div>
-            </div>
+            ) : (
+              <Link href="/login" className="btn-primary w-full justify-center text-xs">
+                <User className="w-4 h-4" /> Iniciar Sesión
+              </Link>
+            )}
           </div>
         )}
       </aside>

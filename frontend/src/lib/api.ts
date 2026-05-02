@@ -12,6 +12,8 @@ import type {
   ExamAutopsyResponse,
 } from "@/types/api";
 
+import { useAuthStore } from "@/store/authStore";
+
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 
@@ -20,8 +22,15 @@ async function apiFetch<T>(
   path: string,
   init?: RequestInit
 ): Promise<T> {
+  const token = useAuthStore.getState().token;
+  const headers: HeadersInit = { "Content-Type": "application/json" };
+  
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const res = await fetch(`${BASE_URL}${path}`, {
-    headers: { "Content-Type": "application/json", ...init?.headers },
+    headers: { ...headers, ...init?.headers },
     ...init,
   });
 
