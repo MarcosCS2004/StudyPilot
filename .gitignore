@@ -1,0 +1,309 @@
+# Virtual Environments
+.venv
+venv/
+env/
+ENV/
+.env.local
+.env.*.local
+
+# Environment variables
+.env
+.env.*.sample
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+*.whl
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# IDE and Editor
+.vscode/
+.vscode/**
+!.vscode/settings.json
+!.vscode/launch.json
+.idea/
+.idea/**
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+.project
+.pydevproject
+.settings/
+*.iml
+
+# OS specific
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Node.js / Next.js (Frontend)
+node_modules/
+npm-debug.log
+yarn-error.log
+.next/
+out/
+.nuxt/
+dist/
+build/
+.cache/
+coverage/
+*.tsbuildinfo
+.next/cache/
+
+# Package managers
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Local env files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Azure
+*.pfx
+*.pem
+.azure/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+postgres/
+mysql/
+
+# Redis
+dump.rdb
+
+# Qdrant
+collections/
+storage/
+
+# File uploads and temporary files
+uploads/
+temp/
+tmp/
+*.tmp
+*.temp
+media/
+static/
+public/uploads/
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# Docker
+docker-compose.override.yml
+.dockerignore
+
+# CI/CD
+.github/workflows/secrets.yml
+
+# Miscellaneous
+.env.example.backup
+*.bak
+*.backup
+*.swp
+*.swo
+*~
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# IDE - PyCharm
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Temporary files
+*.swp
+*.swo
+*~
+.tmp/
+tmp/
+
+# OS files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# Generated API documentation
+site/
+
+# Alembic migrations versions (keep migrations folder, ignore versions)
+# migrations/versions/
+
+# Test coverage
+.coverage
+htmlcov/
+
+# Data files
+*.csv
+*.xlsx
+*.json
+
+# Certificates and keys
+*.pem
+*.key
+*.crt
+*.cer
+*.pfx
+
+# IDE specific
+.vscode/
+.idea/
+*.code-workspace
+
+# Performance testing
+profile_results/
+perf_results/
+
+# Environment
+.env.production
+.env.staging
+.env.development
+
+# Project specific
+studypilot_venv/
+backend/.env
+frontend/.env.local
