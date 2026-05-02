@@ -1,8 +1,3 @@
-"""
-Sesión de base de datos SQLAlchemy.
-Usa SQLite por defecto en desarrollo (no necesita servidor).
-En producción, cambiar DATABASE_URL a PostgreSQL en el .env
-"""
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
@@ -10,8 +5,6 @@ from app.core.config import settings
 engine = create_engine(settings.DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-
-# Dependencia para inyectar la sesión en los endpoints de FastAPI
 def get_db():
     db = SessionLocal()
     try:

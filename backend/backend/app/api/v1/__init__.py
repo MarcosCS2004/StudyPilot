@@ -1,7 +1,3 @@
-"""
-Router principal de la API v1.
-Registra todos los sub-routers de cada módulo.
-"""
 from fastapi import APIRouter
 from app.api.v1 import documents, study, autopsy, profile
 
