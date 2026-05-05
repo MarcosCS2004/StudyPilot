@@ -64,97 +64,25 @@ function SubjectCardSkeleton() {
 
 // ─── Streak Hero Widget ────────────────────────────────────────────
 
-interface StreakWidgetProps {
-  racha_dias: number;
-  xp_total: number;
+// ─── Welcome Widget ────────────────────────────────────────────
+
+interface WelcomeWidgetProps {
   nombre: string;
 }
 
-function StreakWidget({ racha_dias, xp_total, nombre }: StreakWidgetProps) {
-  const isOnFire = racha_dias >= 3;
-  const flameCount = Math.min(racha_dias, 7);
-
+function WelcomeWidget({ nombre }: WelcomeWidgetProps) {
   return (
-    <div
-      className={cn(
-        "relative overflow-hidden rounded-2xl border p-8",
-        "flex flex-col items-center gap-3 text-center",
-        "transition-all duration-500",
-        isOnFire
-          ? "border-amber-500/40 bg-gradient-to-br from-amber-500/10 via-card/60 to-rose-500/5 glow-amber"
-          : "glass-card"
-      )}
-    >
-      {/* Background glow rings */}
-      {isOnFire && (
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-56 h-56 rounded-full bg-amber-500/10 blur-3xl" />
-        </div>
-      )}
-
-      {/* Greeting */}
+    <div className="glass-card p-8 flex flex-col items-center gap-2 text-center">
       <p className="text-xs font-semibold tracking-widest uppercase text-muted-foreground">
         Bienvenido de nuevo
       </p>
       <h2 className="text-2xl font-display font-bold text-foreground">
         {nombre.split(" ")[0]} 👋
       </h2>
-
-      {/* Flame stack */}
-      <div className="flex gap-0.5 my-1" aria-label={`${racha_dias} días de racha`}>
-        {Array.from({ length: flameCount }).map((_, i) => (
-          <Flame
-            key={i}
-            className={cn(
-              "transition-all duration-300",
-              i < racha_dias
-                ? "text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.7)]"
-                : "text-muted/40",
-              i === flameCount - 1 && isOnFire
-                ? "scale-125 animate-pulse-scale"
-                : ""
-            )}
-            style={{ width: 28 + i * 2, height: 28 + i * 2 }}
-            fill="currentColor"
-          />
-        ))}
-      </div>
-
-      {/* Counter */}
-      <div className="flex items-baseline gap-1">
-        <span
-          className={cn(
-            "text-6xl font-display font-extrabold tabular-nums animate-streak-pop",
-            isOnFire ? "text-gradient" : "text-foreground"
-          )}
-        >
-          {racha_dias}
-        </span>
-        <span className="text-xl font-semibold text-muted-foreground">
-          días
-        </span>
-      </div>
-
-      <p className="text-sm text-muted-foreground max-w-[200px]">
-        {racha_dias === 0
-          ? "¡Hoy es un buen día para empezar!"
-          : racha_dias < 3
-          ? "¡Sigue así, la racha crece!"
-          : racha_dias < 7
-          ? "🔥 ¡Estás en racha! No lo pierdas."
-          : "🚀 ¡Eres imparable! Semana perfecta."}
+      <p className="text-sm text-muted-foreground max-w-[250px] mt-2">
+        Continúa con tus estudios y mejora tu dominio de las asignaturas.
       </p>
-
-      {/* XP badge */}
-      <div className="flex items-center gap-2 mt-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
-        <Zap className="w-4 h-4 text-primary" fill="currentColor" />
-        <span className="text-sm font-semibold text-primary">
-          {xp_total.toLocaleString()} XP totales
-        </span>
-      </div>
-
-      {/* CTA */}
-      <Link href="/study" className="btn-primary mt-2 w-full max-w-[200px]">
+      <Link href="/study" className="btn-primary mt-4 w-full max-w-[200px]">
         <Target className="w-4 h-4" />
         Estudiar ahora
       </Link>
@@ -174,34 +102,21 @@ function TopicRow({ topic }: { topic: TopicLevel }) {
       : "from-primary to-accent";
 
   return (
-    <div className="group space-y-1.5">
+    <div className="group py-1 border-b border-border/30 last:border-0">
       <div className="flex items-center justify-between">
         <span className="text-sm text-foreground/90 font-medium truncate max-w-[180px]">
           {topic.nombre_tema}
         </span>
-        <div className="flex items-center gap-2 shrink-0">
-          <span
-            className={cn(
-              getDifficultyClass(topic.nivel),
-              "text-[10px] px-1.5 py-0.5"
-            )}
-          >
-            {getDifficultyLabel(topic.nivel)}
-          </span>
-          <span className="text-xs text-muted-foreground tabular-nums">
-            {formatPct(topic.pct_acierto)}
-          </span>
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="flex flex-col items-end">
+            <span className="text-xs font-bold text-foreground tabular-nums">
+              {formatPct(topic.pct_acierto)}
+            </span>
+            <span className="text-[10px] text-muted-foreground uppercase tracking-tight">
+              Acierto
+            </span>
+          </div>
         </div>
-      </div>
-      <div className="level-bar">
-        <div
-          className={cn("level-bar-fill bg-gradient-to-r", barColor)}
-          style={{ width: `${pct}%` }}
-          role="progressbar"
-          aria-valuenow={topic.nivel}
-          aria-valuemin={0}
-          aria-valuemax={10}
-        />
       </div>
     </div>
   );
@@ -237,28 +152,14 @@ function SubjectCard({ subject }: { subject: SubjectProgress }) {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-1.5 shrink-0">
-          <Star className="w-3.5 h-3.5 text-amber-400" fill="currentColor" />
+        <div className="flex flex-col items-end shrink-0">
           <span className="text-sm font-bold text-foreground">
-            {avgLevel.toFixed(1)}
+            {formatPct(avgAcierto)}
           </span>
-          <span className="text-xs text-muted-foreground">/ 10</span>
+          <span className="text-[10px] text-muted-foreground uppercase">Promedio</span>
         </div>
       </div>
 
-      {/* Overall accuracy bar */}
-      <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 border border-border/40">
-        <TrendingUp className="w-4 h-4 text-emerald-400 shrink-0" />
-        <div className="flex-1 level-bar">
-          <div
-            className="level-bar-fill bg-gradient-to-r from-emerald-500 to-emerald-400"
-            style={{ width: `${avgAcierto}%` }}
-          />
-        </div>
-        <span className="text-xs font-semibold text-emerald-400 tabular-nums">
-          {formatPct(avgAcierto)}
-        </span>
-      </div>
 
       {/* Topics list */}
       <div className="space-y-3">
@@ -395,11 +296,9 @@ export default function Dashboard() {
 
       {/* Main grid: streak + subjects */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Streak Widget (leftmost column on desktop) */}
+        {/* Welcome Widget (leftmost column on desktop) */}
         <div className="lg:col-span-1">
-          <StreakWidget
-            racha_dias={data.racha_dias}
-            xp_total={data.xp_total}
+          <WelcomeWidget
             nombre={data.nombre}
           />
         </div>

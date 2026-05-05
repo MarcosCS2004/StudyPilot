@@ -99,18 +99,6 @@ export default function Sidebar() {
           </button>
         </div>
 
-        {/* Streak mini widget */}
-        {!collapsed && (
-          <div className="mx-3 mt-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-2">
-            <Flame className="w-5 h-5 text-amber-400 shrink-0" fill="currentColor" />
-            <div>
-              <p className="text-xs font-bold text-amber-400">Racha activa</p>
-              <p className="text-[10px] text-muted-foreground">
-                ¡No la rompas hoy!
-              </p>
-            </div>
-          </div>
-        )}
 
         {/* Nav items */}
         <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">

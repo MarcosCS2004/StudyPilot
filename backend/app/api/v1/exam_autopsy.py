@@ -4,7 +4,31 @@ from app.db.session import get_db
 from app.schemas.exam_autopsy import ExamAutopsyCreate, ExamAutopsyResponse, ExamAutopsyUpdate, ExamAutopsyListResponse
 from app.services.exam_autopsy import ExamAutopsyService
 
+from app.api.v1.auth import get_current_user
+from app.models.user import User
+
 router = APIRouter(tags=["Exam Autopsy"])
+
+@router.get("/my-history", response_model=ExamAutopsyListResponse)
+def get_my_history(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Obtiene todas las autopsias del usuario actual."""
+    autopsies = ExamAutopsyService.get_by_user(db, current_user.id)
+    total = ExamAutopsyService.count_by_user(db, current_user.id)
+    return ExamAutopsyListResponse(examenes=autopsies, total=total)
+
+@router.delete("/my-history", status_code=204)
+def delete_my_history(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Borra todo el historial de autopsias del usuario actual."""
+    success = ExamAutopsyService.delete_by_user(db, current_user.id)
+    if not success:
+        raise HTTPException(status_code=400, detail="No se pudo borrar el historial")
+    return None
 
 @router.post("/", response_model=ExamAutopsyResponse, status_code=201)
 def create_exam_autopsy(data: ExamAutopsyCreate, db: Session = Depends(get_db)):

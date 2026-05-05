@@ -11,6 +11,7 @@ class ExamAutopsy(Base):
     subject_id = Column("SubjectId", Integer, ForeignKey("Subjects.SubjectId"), nullable=False, index=True)
     fecha_examen = Column("FechaExamen", DateTime(timezone=True), nullable=True)
     analisis_status = Column("AnalisisStatus", String(100), nullable=True)
+    exam_image_url = Column("ExamImageUrl", String(255), nullable=True)
 
     # Relaciones
     user = relationship("User", back_populates="exams_autopsy")

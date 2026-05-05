@@ -2,45 +2,44 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Zap, Loader2, Mail, Lock } from "lucide-react";
+import { Zap, Loader2, Mail, Lock, User } from "lucide-react";
 import Link from "next/link";
 import { useAuthStore } from "@/store/authStore";
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [nombre, setNombre] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const login = useAuthStore((state) => state.login);
   const router = useRouter();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
     try {
-      const formData = new FormData();
-      formData.append("username", email);
-      formData.append("password", password);
-
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"}/auth/login`,
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"}/auth/register`,
         {
           method: "POST",
-          body: formData,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password, nombre }),
         }
       );
 
       if (!res.ok) {
-        throw new Error("Credenciales inválidas");
+        const data = await res.json();
+        throw new Error(data.detail || "Error al registrarse");
       }
 
       const data = await res.json();
       login(data.access_token, data.user_name);
       router.push("/");
     } catch (err: any) {
-      setError(err.message || "Error al iniciar sesión");
+      setError(err.message || "Error al registrarse");
     } finally {
       setLoading(false);
     }
@@ -48,7 +47,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      {/* Background blobs */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/20 rounded-full blur-3xl" />
 
@@ -58,14 +56,31 @@ export default function LoginPage() {
             <Zap className="w-6 h-6 text-white" fill="currentColor" />
           </div>
           <h1 className="text-2xl font-display font-bold text-gradient">
-            Bienvenido a StudyPilot
+            Únete a StudyPilot
           </h1>
           <p className="text-sm text-muted-foreground">
-            Ingresa tus credenciales para acceder a tu panel.
+            Crea tu cuenta para empezar a estudiar con IA.
           </p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleRegister} className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">
+              Nombre Completo
+            </label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                type="text"
+                required
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+                className="w-full bg-muted/50 border border-border rounded-xl py-2.5 pl-10 pr-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                placeholder="Tu nombre"
+              />
+            </div>
+          </div>
+
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">
               Correo Electrónico
@@ -114,15 +129,15 @@ export default function LoginPage() {
             {loading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              "Ingresar a la Plataforma"
+              "Crear mi Cuenta"
             )}
           </button>
         </form>
 
         <div className="text-center text-sm text-muted-foreground">
-          ¿No tienes cuenta?{" "}
-          <Link href="/register" className="text-primary hover:underline font-semibold">
-            Regístrate aquí
+          ¿Ya tienes cuenta?{" "}
+          <Link href="/login" className="text-primary hover:underline font-semibold">
+            Inicia Sesión
           </Link>
         </div>
       </div>

@@ -12,11 +12,13 @@ class User(Base):
     hashed_password = Column('HashedPassword', String(255), nullable=False)
     created_at = Column('CreatedAt', DateTime(timezone=True), server_default=func.now())
     racha_dias = Column('RachaDias', Integer, default=0)
+    xp_total = Column('XpTotal', Integer, default=0)
+    nombre = Column('Nombre', String(255), nullable=True)
     ultimo_acceso = Column('UltimoAcceso', DateTime(timezone=True), onupdate=func.now())
 
     # Relaciones
     subjects = relationship("Subject", back_populates="user", cascade="all, delete-orphan")
     documents = relationship("Document", back_populates="user", cascade="all, delete-orphan")
-    student_profile = relationship("StudentProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")
+    topic_masteries = relationship("TopicMastery", back_populates="user", cascade="all, delete-orphan")
     error_history = relationship("ErrorHistory", back_populates="user", cascade="all, delete-orphan")
     exams_autopsy = relationship("ExamAutopsy", back_populates="user", cascade="all, delete-orphan")

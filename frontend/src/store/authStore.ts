@@ -6,6 +6,7 @@ interface AuthState {
   userName: string | null;
   login: (token: string, userName: string) => void;
   logout: () => void;
+  setUserName: (userName: string) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -15,6 +16,7 @@ export const useAuthStore = create<AuthState>()(
       userName: null,
       login: (token, userName) => set({ token, userName }),
       logout: () => set({ token: null, userName: null }),
+      setUserName: (userName) => set({ userName }),
     }),
     {
       name: "studypilot-auth", // Guarda la sesión en localStorage

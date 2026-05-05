@@ -47,7 +47,6 @@ interface SessionState {
   feedbackRead: boolean;
   questionCount: number;
   correctCount: number;
-  totalXP: number;
 }
 
 const INITIAL_STATE: SessionState = {
@@ -56,7 +55,6 @@ const INITIAL_STATE: SessionState = {
   feedbackRead: false,
   questionCount: 0,
   correctCount: 0,
-  totalXP: 0,
 };
 
 // ─── Skeleton ──────────────────────────────────────────────────────
@@ -88,8 +86,7 @@ function QuestionSkeleton() {
 function SessionStatsBar({
   questionCount,
   correctCount,
-  totalXP,
-}: Pick<SessionState, "questionCount" | "correctCount" | "totalXP">) {
+}: Pick<SessionState, "questionCount" | "correctCount">) {
   const accuracy =
     questionCount > 0 ? Math.round((correctCount / questionCount) * 100) : 0;
 
@@ -102,10 +99,6 @@ function SessionStatsBar({
       <span className="flex items-center gap-1">
         <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
         {accuracy}% acierto
-      </span>
-      <span className="flex items-center gap-1">
-        <Zap className="w-3.5 h-3.5 text-amber-400" fill="currentColor" />
-        +{totalXP} XP
       </span>
     </div>
   );
@@ -133,53 +126,34 @@ function OptionButton({
   const isSelected = selected === letter;
   const hasFeedback = feedback !== null;
   const isCorrect = hasFeedback && feedback.respuesta_correcta === letter;
-  const isWrong =
-    hasFeedback && isSelected && !feedback.correcto;
-
-  const cls = cn(
-    "answer-btn",
-    !hasFeedback && isSelected && "answer-btn-selected",
-    hasFeedback && isCorrect && "answer-btn-correct",
-    hasFeedback && isWrong && "answer-btn-wrong",
-    hasFeedback && !isCorrect && !isSelected && "answer-btn-disabled",
-    disabled && !hasFeedback && "opacity-60 cursor-not-allowed"
-  );
+  const isWrong = hasFeedback && isSelected && !feedback.correcto;
 
   return (
     <button
-      id={`option-${letter}`}
-      className={cls}
-      onClick={() => !disabled && !hasFeedback && onSelect(letter)}
-      disabled={disabled || hasFeedback !== null}
-      aria-pressed={isSelected}
+      key={letter}
+      type="button"
+      onClick={() => {
+        if (!disabled && !hasFeedback) {
+          onSelect(letter);
+        }
+      }}
+      disabled={disabled || hasFeedback}
+      className={cn(
+        "answer-btn w-full text-left flex items-center gap-4 transition-all relative z-10",
+        !hasFeedback && isSelected && "answer-btn-selected",
+        hasFeedback && isCorrect && "answer-btn-correct",
+        hasFeedback && isWrong && "answer-btn-wrong",
+        hasFeedback && !isCorrect && !isSelected && "opacity-40",
+        disabled && "cursor-wait"
+      )}
     >
-      <div className="flex items-center gap-3">
-        {/* Letter badge */}
-        <span
-          className={cn(
-            "w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 border",
-            !hasFeedback && isSelected
-              ? "bg-primary text-white border-primary"
-              : !hasFeedback
-              ? "bg-muted border-border text-muted-foreground"
-              : isCorrect
-              ? "bg-emerald-500/20 border-emerald-500/50 text-emerald-400"
-              : isWrong
-              ? "bg-rose-500/20 border-rose-500/50 text-rose-400"
-              : "bg-muted border-border text-muted-foreground"
-          )}
-        >
-          {letter}
-        </span>
-        <span className="flex-1 text-left leading-snug">{text}</span>
-        {/* Result icon */}
-        {hasFeedback && isCorrect && (
-          <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-        )}
-        {hasFeedback && isWrong && (
-          <XCircle className="w-5 h-5 text-rose-400 shrink-0" />
-        )}
-      </div>
+      <span className={cn(
+        "w-8 h-8 rounded-lg border flex items-center justify-center font-bold text-xs shrink-0",
+        isSelected ? "bg-primary text-white border-primary" : "bg-muted border-border text-muted-foreground"
+      )}>
+        {letter}
+      </span>
+      <span className="flex-1 text-sm font-medium">{text}</span>
     </button>
   );
 }
@@ -255,32 +229,7 @@ function FeedbackPanel({
         </p>
       </div>
 
-      {/* Level update + XP */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div className="flex items-center gap-2 text-sm">
-          <TrendingUp className="w-4 h-4 text-primary" />
-          <span className="text-muted-foreground">Nuevo nivel en </span>
-          <span className="font-semibold text-foreground">{question.tema}</span>
-          <span
-            className={cn(
-              "font-bold",
-              feedback.nuevo_nivel_tema >= 7
-                ? "text-primary"
-                : feedback.nuevo_nivel_tema >= 4
-                ? "text-amber-400"
-                : "text-emerald-400"
-            )}
-          >
-            {feedback.nuevo_nivel_tema}/10
-          </span>
-        </div>
-        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20">
-          <Zap className="w-3.5 h-3.5 text-amber-400" fill="currentColor" />
-          <span className="text-xs font-bold text-amber-400">
-            +{feedback.xp_ganado} XP
-          </span>
-        </div>
-      </div>
+      {/* Result action bar */}
 
       {/* Lock notice + Continue button */}
       <div className="flex items-center gap-3 pt-1">
@@ -317,6 +266,11 @@ interface StudySessionProps {
 export default function StudySession({ asignaturaId }: StudySessionProps) {
   const queryClient = useQueryClient();
   const [session, setSession] = useState<SessionState>(INITIAL_STATE);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // ── Fetch next question ──────────────────────────────────────────
   const {
@@ -350,7 +304,6 @@ export default function StudySession({ asignaturaId }: StudySessionProps) {
         feedback: data,
         questionCount: s.questionCount + 1,
         correctCount: s.correctCount + (data.correcto ? 1 : 0),
-        totalXP: s.totalXP + data.xp_ganado,
       }));
     },
   });
@@ -371,11 +324,13 @@ export default function StudySession({ asignaturaId }: StudySessionProps) {
   );
 
   const handleNextQuestion = useCallback(() => {
-    // Invalidate so TanStack refetches with fresh question
-    queryClient.invalidateQueries({ queryKey: ["next-question", asignaturaId] });
-  }, [queryClient, asignaturaId]);
+    setSession((s) => ({ ...s, selected: null, feedback: null }));
+    refetch();
+  }, [refetch]);
 
   // ── Loading state (LLM generating) ──────────────────────────────
+  if (!mounted) return null;
+
   if (isLoading || isFetching) {
     return (
       <section className="max-w-2xl mx-auto px-4 py-10">
@@ -426,7 +381,6 @@ export default function StudySession({ asignaturaId }: StudySessionProps) {
         <SessionStatsBar
           questionCount={session.questionCount}
           correctCount={session.correctCount}
-          totalXP={session.totalXP}
         />
       </div>
 
@@ -440,8 +394,7 @@ export default function StudySession({ asignaturaId }: StudySessionProps) {
               "text-xs"
             )}
           >
-            {getDifficultyLabel(question.nivel_dificultad)} · Nivel{" "}
-            {question.nivel_dificultad}
+            {getDifficultyLabel(question.nivel_dificultad)}
           </span>
           <span className="text-xs text-muted-foreground font-mono">
             #{question.question_id.slice(0, 8)}

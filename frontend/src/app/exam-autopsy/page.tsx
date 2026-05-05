@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function ExamAutopsyPage() {
-  return <ExamAutopsyReport />;
+  return <ExamAutopsyReport initialTab="exam" hideTabs={true} />;
 }

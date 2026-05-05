@@ -23,15 +23,20 @@ async function apiFetch<T>(
   init?: RequestInit
 ): Promise<T> {
   const token = useAuthStore.getState().token;
-  const headers: HeadersInit = { "Content-Type": "application/json" };
+  const headers = new Headers(init?.headers);
+  
+  // Only set JSON content type if it's not a FormData (which needs multipart boundary)
+  if (!(init?.body instanceof FormData) && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
   
   if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
+    headers.set("Authorization", `Bearer ${token}`);
   }
 
   const res = await fetch(`${BASE_URL}${path}`, {
-    headers: { ...headers, ...init?.headers },
     ...init,
+    headers,
   });
 
   if (!res.ok) {
@@ -52,7 +57,7 @@ export const profileApi = {
 export const studyApi = {
   getNextQuestion: (asignatura_id?: string): Promise<NextQuestionResponse> =>
     apiFetch<NextQuestionResponse>(
-      `/study/next-question${asignatura_id ? `?asignatura_id=${asignatura_id}` : ""}`
+      `/study/next-question?${asignatura_id ? `asignatura_id=${asignatura_id}&` : ""}t=${Date.now()}`
     ),
 
   submitAnswer: (payload: AnswerPayload): Promise<AnswerResponse> =>
@@ -62,8 +67,20 @@ export const studyApi = {
     }),
 };
 
+// ─── Chat ──────────────────────────────────────
+export const chatApi = {
+  sendMessage: (message: string, history: any[] = []): Promise<{ response: string; sources: string[] }> =>
+    apiFetch<{ response: string; sources: string[] }>("/chat/", {
+      method: "POST",
+      body: JSON.stringify({ message, history }),
+    }),
+};
+
 // ─── Documents ─────────────────────────────────
 export const documentsApi = {
+  getDocuments: (): Promise<any[]> =>
+    apiFetch<any[]>("/documents"),
+
   uploadDocument: (file: File, asignatura_id: string): Promise<UploadResponse> => {
     const formData = new FormData();
     formData.append("file", file);
@@ -71,10 +88,11 @@ export const documentsApi = {
     return apiFetch<UploadResponse>("/documents/upload", {
       method: "POST",
       body: formData,
-      // Let browser set Content-Type multipart boundary
-      headers: {},
     });
   },
+
+  deleteDocument: (id: string): Promise<void> =>
+    apiFetch<void>(`/documents/${id}`, { method: "DELETE" }),
 };
 
 // ─── Exam Autopsy ──────────────────────────────
@@ -82,10 +100,18 @@ export const examApi = {
   uploadExam: (file: File): Promise<ExamAutopsyResponse> => {
     const formData = new FormData();
     formData.append("file", file);
-    return apiFetch<ExamAutopsyResponse>("/exam-autopsy/upload", {
+    return apiFetch<ExamAutopsyResponse>("/autopsy/upload", {
       method: "POST",
       body: formData,
-      headers: {},
     });
   },
+
+  getAutopsy: (id: string): Promise<ExamAutopsyResponse> =>
+    apiFetch<ExamAutopsyResponse>(`/exam-autopsy/${id}`),
+
+  getHistory: (): Promise<{ examenes: ExamAutopsyResponse[] }> =>
+    apiFetch<{ examenes: ExamAutopsyResponse[] }>("/exam-autopsy/my-history"),
+
+  clearHistory: (): Promise<void> =>
+    apiFetch<void>("/exam-autopsy/my-history", { method: "DELETE" }),
 };

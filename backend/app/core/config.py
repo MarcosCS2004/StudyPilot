@@ -24,15 +24,17 @@ class Settings(BaseSettings):
     # AI Services – opcional en modo mock
     OPENAI_API_KEY: Optional[str] = None
     EMBEDDING_MODEL: str = "text-embedding-3-large"
+    AZURE_DEPLOYMENT: str = "gpt-4o"  # Azure OpenAI deployment name for GPT-4o
 
     # Security
     SECRET_KEY: str = "dev-secret-key-change-in-production"
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
 
     # Vector Store
     QDRANT_URL: str = "http://localhost:6333"
-    RAG_CHUNK_SIZE: int = 512
+    QDRANT_API_KEY: Optional[str] = None
+    RAG_CHUNK_SIZE: int = 128
     RAG_CHUNK_OVERLAP: int = 64
 
     class Config:

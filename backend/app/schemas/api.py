@@ -22,8 +22,6 @@ class SubjectProgress(BaseModel):
 class ProfileProgressResponse(BaseModel):
     alumno_id: str
     nombre: str
-    racha_dias: int
-    xp_total: int
     asignaturas: list[SubjectProgress]
 
 
@@ -52,7 +50,6 @@ class AnswerResponse(BaseModel):
     respuesta_correcta: Literal["A", "B", "C", "D"]
     explicacion: str
     nuevo_nivel_tema: int
-    xp_ganado: int
     siguiente_question_id: Optional[str] = None
 
 
@@ -86,3 +83,4 @@ class ExamAutopsyResponse(BaseModel):
     error_items: list[ErrorItem]
     sesion_refuerzo_id: str
     resumen: str
+    exam_image_url: Optional[str] = None

@@ -8,5 +8,5 @@ export const metadata: Metadata = {
 
 export default function UploadPage() {
   // Renders only the upload center section (notes tab active by default)
-  return <ExamAutopsyReport />;
+  return <ExamAutopsyReport initialTab="notes" hideTabs={true} />;
 }

@@ -19,10 +19,12 @@ import {
   useState,
   useCallback,
   useRef,
+  useEffect,
   type DragEvent,
   type ChangeEvent,
 } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Upload,
   FileText,
@@ -179,9 +181,6 @@ function ErrorItemCard({
               </p>
             </div>
           </div>
-
-          {/* Source link – "Grounded in Source" principle */}
-          <SourceLinkBox chunk_source={item.chunk_source} />
         </>
       )}
     </article>
@@ -239,6 +238,21 @@ function AutopsyReport({
           {report.resumen}
         </p>
 
+        {/* Original Exam Image (if exists) */}
+        {report.exam_image_url && (
+          <div className="rounded-xl overflow-hidden border border-border bg-black/20">
+            <div className="p-2 bg-muted/30 border-b border-border flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              <ImageIcon className="w-3 h-3" />
+              Imagen del examen original
+            </div>
+            <img 
+              src={report.exam_image_url} 
+              alt="Examen original" 
+              className="w-full h-auto max-h-[400px] object-contain"
+            />
+          </div>
+        )}
+
         {/* Fault breakdown */}
         <div className="grid grid-cols-3 gap-3">
           {[
@@ -287,23 +301,51 @@ function AutopsyReport({
 // ─── Upload Center ─────────────────────────────────────────────────
 
 interface FileEntry {
-  file: File;
+  id?: string;
+  file?: File;
+  filename?: string;
+  size?: number;
   status: UploadStatus;
   error?: string;
 }
 
 interface UploadCenterProps {
   onAutopsyComplete: (report: ExamAutopsyResponse) => void;
+  initialTab?: "notes" | "exam";
+  hideTabs?: boolean;
 }
 
-function UploadCenter({ onAutopsyComplete }: UploadCenterProps) {
+function UploadCenter({ 
+  onAutopsyComplete, 
+  initialTab = "notes",
+  hideTabs = false 
+}: UploadCenterProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [noteFiles, setNoteFiles] = useState<FileEntry[]>([]);
   const [examFile, setExamFile] = useState<File | null>(null);
-  const [activeTab, setActiveTab] = useState<"notes" | "exam">("notes");
+  const [activeTab, setActiveTab] = useState<"notes" | "exam">(initialTab);
 
   const notesInputRef = useRef<HTMLInputElement>(null);
   const examInputRef = useRef<HTMLInputElement>(null);
+
+  // ── Load existing documents on mount ─────────────────────────────
+  useEffect(() => {
+    if (activeTab === "notes") {
+      const fetchDocs = async () => {
+        try {
+          const docs = await documentsApi.getDocuments();
+          setNoteFiles(docs.map(d => ({
+            id: d.id,
+            filename: d.filename,
+            status: "done"
+          })));
+        } catch (err) {
+          console.error("Error fetching documents:", err);
+        }
+      };
+      fetchDocs();
+    }
+  }, [activeTab]);
 
   // ── Mutations ────────────────────────────────────────────────────
   const notesMutation = useMutation({
@@ -356,14 +398,24 @@ function UploadCenter({ onAutopsyComplete }: UploadCenterProps) {
     e.target.value = "";
   }, []);
 
-  const removeNote = (idx: number) =>
+  const removeNote = async (idx: number) => {
+    const entry = noteFiles[idx];
+    if (entry.id) {
+      try {
+        await documentsApi.deleteDocument(entry.id);
+      } catch (err) {
+        console.error("Error deleting document:", err);
+        // Fallback: still remove from UI if it was already deleted on server or failed
+      }
+    }
     setNoteFiles((prev) => prev.filter((_, i) => i !== idx));
+  };
 
   // ── Upload actions ───────────────────────────────────────────────
   const uploadNotes = async () => {
     for (let i = 0; i < noteFiles.length; i++) {
       const entry = noteFiles[i];
-      if (entry.status !== "idle") continue;
+      if (entry.status !== "idle" && entry.status !== "error") continue;
       setNoteFiles((prev) =>
         prev.map((e, idx) =>
           idx === i ? { ...e, status: "uploading" } : e
@@ -371,7 +423,7 @@ function UploadCenter({ onAutopsyComplete }: UploadCenterProps) {
       );
       try {
         await notesMutation.mutateAsync({
-          file: entry.file,
+          file: entry.file!,
           asignatura_id: "default",
         });
         setNoteFiles((prev) =>
@@ -435,33 +487,35 @@ function UploadCenter({ onAutopsyComplete }: UploadCenterProps) {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-border">
-        {(["notes", "exam"] as const).map((tab) => (
-          <button
-            key={tab}
-            id={`tab-${tab}`}
-            onClick={() => setActiveTab(tab)}
-            className={cn(
-              "px-5 py-3 text-sm font-semibold transition-all duration-200 border-b-2 -mb-px",
-              activeTab === tab
-                ? "border-primary text-foreground"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            )}
-          >
-            {tab === "notes" ? (
-              <span className="flex items-center gap-2">
-                <BookOpen className="w-4 h-4" />
-                Apuntes y Materiales
-              </span>
-            ) : (
-              <span className="flex items-center gap-2">
-                <Microscope className="w-4 h-4" />
-                Autopsia de Examen
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
+      {!hideTabs && (
+        <div className="flex border-b border-border">
+          {(["notes", "exam"] as const).map((tab) => (
+            <button
+              key={tab}
+              id={`tab-${tab}`}
+              onClick={() => setActiveTab(tab)}
+              className={cn(
+                "px-5 py-3 text-sm font-semibold transition-all duration-200 border-b-2 -mb-px",
+                activeTab === tab
+                  ? "border-primary text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {tab === "notes" ? (
+                <span className="flex items-center gap-2">
+                  <BookOpen className="w-4 h-4" />
+                  Apuntes y Materiales
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <Microscope className="w-4 h-4" />
+                  Autopsia de Examen
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* ── Notes Tab ── */}
       {activeTab === "notes" && (
@@ -513,33 +567,37 @@ function UploadCenter({ onAutopsyComplete }: UploadCenterProps) {
                   key={idx}
                   className="flex items-center gap-3 p-3 glass-card rounded-xl"
                 >
-                  {getFileIcon(entry.file.name)}
+                  {getFileIcon(entry.filename || entry.file?.name || "archivo")}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">
-                      {entry.file.name}
+                      {entry.filename || entry.file?.name}
                     </p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatFileSize(entry.file.size)}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs text-muted-foreground">
+                        {entry.size ? formatFileSize(entry.size) : (entry.file ? formatFileSize(entry.file.size) : "--")}
+                      </p>
+                      {entry.status === "error" && (
+                        <p className="text-xs text-rose-400 truncate">
+                          · Error: {entry.error}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  {/* Status indicator */}
-                  {entry.status === "idle" && (
-                    <button
-                      onClick={() => removeNote(idx)}
-                      className="text-muted-foreground hover:text-rose-400 transition-colors"
-                      aria-label="Eliminar"
-                    >
-                      <XCircle className="w-4 h-4" />
-                    </button>
-                  )}
+                  {/* Status indicator / Delete button */}
                   {entry.status === "uploading" || entry.status === "processing" ? (
                     <Loader2 className="w-4 h-4 animate-spin text-primary" />
                   ) : null}
                   {entry.status === "done" && (
                     <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                   )}
-                  {entry.status === "error" && (
-                    <XCircle className="w-4 h-4 text-rose-400" title={entry.error} />
+                  {(entry.status === "idle" || entry.status === "done" || entry.status === "error") && (
+                    <button
+                      onClick={() => removeNote(idx)}
+                      className="text-muted-foreground hover:text-rose-400 transition-colors ml-2"
+                      aria-label="Eliminar"
+                    >
+                      <XCircle className="w-4 h-4" />
+                    </button>
                   )}
                 </div>
               ))}
@@ -550,7 +608,7 @@ function UploadCenter({ onAutopsyComplete }: UploadCenterProps) {
                 onClick={uploadNotes}
                 disabled={
                   notesMutation.isPending ||
-                  noteFiles.every((e) => e.status !== "idle")
+                  noteFiles.every((e) => e.status !== "idle" && e.status !== "error")
                 }
               >
                 {notesMutation.isPending ? (
@@ -558,7 +616,8 @@ function UploadCenter({ onAutopsyComplete }: UploadCenterProps) {
                 ) : (
                   <Upload className="w-4 h-4" />
                 )}
-                Subir {noteFiles.filter((e) => e.status === "idle").length}{" "}
+                {noteFiles.some(e => e.status === "error") ? "Reintentar" : "Subir"}{" "}
+                {noteFiles.filter((e) => e.status === "idle" || e.status === "error").length}{" "}
                 archivo(s)
               </button>
             </div>
@@ -689,17 +748,63 @@ function UploadCenter({ onAutopsyComplete }: UploadCenterProps) {
 }
 
 // ─── Main Exported Component ───────────────────────────────────────
+interface ExamAutopsyReportProps {
+  initialTab?: "notes" | "exam";
+  hideTabs?: boolean;
+}
 
-export default function ExamAutopsyReport() {
+export default function ExamAutopsyReport({ 
+  initialTab = "notes", 
+  hideTabs = false 
+}: ExamAutopsyReportProps) {
   const [report, setReport] = useState<ExamAutopsyResponse | null>(null);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const autopsyId = searchParams.get("autopsyId");
+  const isResetting = useRef(false);
+
+  useEffect(() => {
+    // Only fetch if we have an ID in the URL AND no report in state AND we aren't resetting
+    if (autopsyId && !report && !isResetting.current) {
+      examApi.getAutopsy(autopsyId)
+        .then(setReport)
+        .catch(err => console.error("Error loading autopsy from URL:", err));
+    }
+    
+    // Clear resetting flag if autopsyId is now null
+    if (!autopsyId) {
+      isResetting.current = false;
+    }
+  }, [autopsyId, report]);
+
+  const handleComplete = (rep: ExamAutopsyResponse) => {
+    isResetting.current = false;
+    setReport(rep);
+    const id = rep.autopsy_id || (rep as any).id;
+    if (id) {
+      router.push(`?autopsyId=${id}`, { scroll: false });
+    }
+  };
+
+  const handleReset = () => {
+    isResetting.current = true;
+    setReport(null);
+    router.replace(window.location.pathname);
+  };
 
   if (report) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-10">
-        <AutopsyReport report={report} onReset={() => setReport(null)} />
+        <AutopsyReport report={report} onReset={handleReset} />
       </div>
     );
   }
 
-  return <UploadCenter onAutopsyComplete={setReport} />;
+  return (
+    <UploadCenter 
+      onAutopsyComplete={handleComplete} 
+      initialTab={autopsyId ? "exam" : initialTab} 
+      hideTabs={hideTabs} 
+    />
+  );
 }

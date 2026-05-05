@@ -27,6 +27,28 @@
     --ring: 221 83% 53%;
     --radius: 0.75rem;
   }
+
+  .light-mode {
+    --background: 210 20% 98%;
+    --foreground: 224 71% 4%;
+    --card: 0 0% 100%;
+    --card-foreground: 224 71% 4%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 71% 4%;
+    --primary: 221 83% 53%;
+    --primary-foreground: 210 20% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 264 80% 58%;
+    --accent-foreground: 210 20% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221 83% 53%;
+  }
 }
 
 @layer base {
@@ -46,6 +68,12 @@
       radial-gradient(ellipse at 80% 20%, hsla(264, 80%, 18%, 0.25) 0%, transparent 55%);
     background-attachment: fixed;
     min-height: 100vh;
+  }
+
+  .light-mode body {
+    background-image:
+      radial-gradient(ellipse at 20% 50%, hsla(221, 83%, 90%, 0.5) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, hsla(264, 80%, 90%, 0.4) 0%, transparent 55%);
   }
 
   ::selection {

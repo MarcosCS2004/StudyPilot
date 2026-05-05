@@ -99,22 +99,28 @@ def update_document_status(
 
 # --- DELETE ---
 @router.delete("/{document_id}", status_code=204)
-def delete_document(
+async def delete_document(
     document_id: str,
     db: Session = Depends(get_db)
 ):
-    """Elimina un documento."""
+    """Elimina un documento y sus fragmentos de la IA."""
+    from app.services.ai.dual_rag import dual_rag
+    await dual_rag.delete_document_data(document_id)
+    
     success = DocumentService.delete_document(db, document_id)
     if not success:
         raise HTTPException(status_code=404, detail="Documento no encontrado")
     return None
 
 @router.delete("/user/{user_id}", status_code=204)
-def delete_user_documents(
+async def delete_user_documents(
     user_id: str,
     db: Session = Depends(get_db)
 ):
-    """Elimina todos los documentos de un usuario."""
+    """Elimina todos los documentos de un usuario y sus fragmentos de la IA."""
+    from app.services.ai.dual_rag import dual_rag
+    await dual_rag.delete_all_user_data(user_id)
+    
     success = DocumentService.delete_documents_by_user(db, user_id)
     if not success:
         raise HTTPException(status_code=400, detail="No se pudieron eliminar los documentos")
